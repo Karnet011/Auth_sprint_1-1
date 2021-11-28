@@ -79,6 +79,16 @@ class JWTSettings(BaseSettings):
 
     class Config:
         env_prefix = "JWT_"
+        
+        
+class Jaeger(BaseSettings):
+    JAEGER_TYPE: str = 'const'
+    REPORTING_HOST: str = 'jaeger'
+    REPORTING_PORT: int = 6831
+    SERVICE_NAME: str = 'auth_app'
+    
+    class Config:
+        env_prefix = "JAEGER_"
 
 
 class CommonSettings(BaseSettings):
@@ -97,6 +107,7 @@ class CommonSettings(BaseSettings):
     DB: DatabaseSettings = DatabaseSettings()
     JWT: JWTSettings = JWTSettings()
     RATE_LIMIT: RateLimit = RateLimit()
+    JAEGER: Jaeger = Jaeger()
 
     DEFAULT_PAGE_LIMIT: int = 5
     CACHE_DEFAULT_TIMEOUT: int = 60 * 60 * 3
