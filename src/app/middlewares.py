@@ -27,6 +27,6 @@ def init_rate_limit(app: Flask):
 
     @app.before_request
     def before_request():
-        request_id = request.headers.get('X-Request-Id')
+        request_id = request.headers.get("X-Request-Id")
         if not request_id:
-            raise RuntimeError('request id is required')
+            raise RuntimeError("request id is required")

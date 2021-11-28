@@ -79,14 +79,14 @@ class JWTSettings(BaseSettings):
 
     class Config:
         env_prefix = "JWT_"
-        
-        
+
+
 class Jaeger(BaseSettings):
-    JAEGER_TYPE: str = 'const'
-    REPORTING_HOST: str = 'jaeger'
+    JAEGER_TYPE: str = "const"
+    REPORTING_HOST: str = "jaeger"
     REPORTING_PORT: int = 6831
-    SERVICE_NAME: str = 'auth_app'
-    
+    SERVICE_NAME: str = "auth_app"
+
     class Config:
         env_prefix = "JAEGER_"
 
