@@ -55,7 +55,7 @@ class RedisSettings(BaseDSNSettings):
         env_prefix = "REDIS_"
 
 
-class RateLimit(BaseSettings):
+class RateLimitSettings(BaseSettings):
     MAX_CALLS: int = 20
     PERIOD: int = 59
 
@@ -81,8 +81,22 @@ class JWTSettings(BaseSettings):
         env_prefix = "JWT_"
 
 
+class OauthSettings(BaseSettings):
+    GOOGLE_METADATA_URL: str = ""
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+
+    YANDEX_CLIENT_ID: str = ""
+    YANDEX_CLIENT_SECRET: str = ""
+    YANDEX_AUTHORIZE_URL: str = ""
+
+    class Config:
+        env_prefix = "OAUTH_"
+
+
 class CommonSettings(BaseSettings):
     FLASK_APP: str = "app.main:app"
+    SECRET_KEY: str = ""
     DEFAULT_ADMIN_LOGIN: str
     DEFAULT_ADMIN_PASSWORD: str
 
@@ -96,7 +110,8 @@ class CommonSettings(BaseSettings):
     REDIS: RedisSettings = RedisSettings()
     DB: DatabaseSettings = DatabaseSettings()
     JWT: JWTSettings = JWTSettings()
-    RATE_LIMIT: RateLimit = RateLimit()
+    RATE_LIMIT: RateLimitSettings = RateLimitSettings()
+    OAUTH: OauthSettings = OauthSettings()
 
     DEFAULT_PAGE_LIMIT: int = 5
     CACHE_DEFAULT_TIMEOUT: int = 60 * 60 * 3
