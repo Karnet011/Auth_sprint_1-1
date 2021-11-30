@@ -26,6 +26,7 @@
 - PostgreSQL — хранилище данных, в котором лежит вся необходимая информация для сервса.
 - Redis — хранилище данных для токенов.
 - SQLAlchemy - используется как ORM.
+- Jaeger - используется для трассировки, можно зайти в UI на порту 16686
 
 ## Используемые технологии
 - Flask + gevent
@@ -34,6 +35,7 @@
 - Docker
 - Pytest + pytest coverage
 - SQLAlchemy
+- Jaeger
 
 ## Общие правила aka code-style
 1. Вся бизнес-логика должна помещаться в провайдерах src/app/services
@@ -55,6 +57,7 @@ docker-compose up --build
 4. Создать суперпользователя. В соседнем терминале выполнить
 ```shell
 docker exec -it auth-app python manage.py create-superuser --login <тут логин> --password <тут пароль>
+
 ```
 
 ### Тестирование

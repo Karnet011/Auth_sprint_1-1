@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_opentracing import FlaskTracer
 
 from app.api import init_api
 from app.cache import init_cache
@@ -8,12 +9,13 @@ from app.jwt import init_jwt
 from app.oauth import init_oauth
 from app.settings import settings
 from app.middlewares import init_rate_limit
-
+from app.tracer import setup_jaeger
 
 app = Flask(settings.FLASK_APP)
 app.config["DEBUG"] = settings.DEBUG
 app.config["SECRET_KEY"] = settings.SECRET_KEY
 
+tracer = FlaskTracer(setup_jaeger, True, app=app)
 
 init_rate_limit(app)
 init_db(app)

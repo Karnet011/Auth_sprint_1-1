@@ -24,3 +24,9 @@ def init_rate_limit(app: Flask):
             raise exceptions.TooManyRequests(
                 "Уважаемый ревьюер, просьба перестать спамить. Отдохни теперь минутку"
             )
+
+    @app.before_request
+    def before_request():
+        request_id = request.headers.get("X-Request-Id")
+        if not request_id:
+            raise RuntimeError("request id is required")
