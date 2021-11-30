@@ -55,7 +55,7 @@ class Role(TimestampMixin, db.Model, RoleMixin, MethodsExtensionMixin):
     description = db.Column(db.String(255))
 
     def __str__(self):
-        return self.name
+        return f"<Role {self.name}>"
 
     class Meta:
         PROTECTED_ROLE_NAMES = (
@@ -83,17 +83,17 @@ class User(TimestampMixin, db.Model, UserMixin, MethodsExtensionMixin):
     )
 
     def __str__(self) -> str:
-        return self.login
+        return f"<User {self.login}>"
 
     @property
     def password(self) -> str:
         return self._password
 
     @password.setter
-    def password(self, password) -> None:
+    def password(self, password: str) -> None:
         self._password = generate_password_hash(password)
 
-    def check_password(self, password) -> bool:
+    def check_password(self, password: str) -> bool:
         return check_password_hash(self._password, password)
 
     @property
@@ -118,3 +118,21 @@ class AuthHistory(db.Model):
     user_agent = db.Column(db.Text, nullable=False)
     ip_addr = db.Column(db.String(100))
     device = db.Column(db.Text)
+
+
+class SocialAccount(db.Model):
+    __tablename__ = "social_accounts"
+
+    id = db.Column(
+        UUID(as_uuid=True), primary_key=True, default=uuid4, unique=True, nullable=False
+    )
+    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("users.id"), nullable=False)
+    user = db.relationship(User, backref=db.backref("social_accounts", lazy=True))
+
+    social_id = db.Column(db.String(255), nullable=False)
+    social_name = db.Column(db.String(255), nullable=False)
+
+    __table_args__ = (db.UniqueConstraint("social_id", "social_name", name="social_uc"), )
+
+    def __str__(self) -> str:
+        return f"<SocialAccount {self.social_name}:{self.user_id}>"
