@@ -2,10 +2,42 @@ from enum import Enum
 from uuid import uuid4
 
 from flask_security import UserMixin, RoleMixin
+
+from sqlalchemy import UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.database import db
+
+
+def create_partition_history(target, connection, **kw) -> None:
+    """creating partition by user_sign_in"""
+    connection.execute(
+        """CREATE TABLE IF NOT EXISTS "user_sign_in_smart" PARTITION OF "auth_history" FOR VALUES IN ('smart')"""
+    )
+    connection.execute(
+        """CREATE TABLE IF NOT EXISTS "user_sign_in_mobile" PARTITION OF "auth_history" FOR VALUES IN ('mobile')"""
+    )
+    connection.execute(
+        """CREATE TABLE IF NOT EXISTS "user_sign_in_web" PARTITION OF "auth_history" FOR VALUES IN ('web')"""
+    )
+    connection.execute(
+        """CREATE TABLE IF NOT EXISTS "user_sign_in_web" PARTITION OF "auth_history" FOR VALUES IN ('PostmanRuntime/7.28.4')"""
+    )
+    connection.execute(
+        """CREATE TABLE IF NOT EXISTS "user_sign_in_web"
+         PARTITION OF "auth_history" FOR VALUES NOT IN ('smart') AND 
+                                         VALUES NOT IN ('mobile') AND
+                                         VALUES NOT IN ('web')"""
+    )
+
+
+def create_partition_user(target, connection, **kw) -> None:
+    """creating partition by user_sign_in"""
+    connection.execute(
+        """CREATE TABLE IF NOT EXISTS "user_registration"
+         PARTITION OF date_part('year', 'created_on') FOR VALUES IN (date_part('year', now()))"""
+    )
 
 
 class DefaultRoleEnum(str, Enum):
@@ -55,7 +87,7 @@ class Role(TimestampMixin, db.Model, RoleMixin, MethodsExtensionMixin):
     description = db.Column(db.String(255))
 
     def __str__(self):
-        return self.name
+        return f"<Role {self.name}>"
 
     class Meta:
         PROTECTED_ROLE_NAMES = (
@@ -67,6 +99,13 @@ class Role(TimestampMixin, db.Model, RoleMixin, MethodsExtensionMixin):
 
 class User(TimestampMixin, db.Model, UserMixin, MethodsExtensionMixin):
     __tablename__ = "users"
+    __table_args__ = (
+        UniqueConstraint("id", "created_on"),
+        {
+            "postgresql_partition_by": "LIST (created_on)",
+            "listeners": [("after_create", create_partition_user)],
+        },
+    )
 
     id = db.Column(
         UUID(as_uuid=True), primary_key=True, default=uuid4, unique=True, nullable=False
@@ -83,17 +122,17 @@ class User(TimestampMixin, db.Model, UserMixin, MethodsExtensionMixin):
     )
 
     def __str__(self) -> str:
-        return self.login
+        return f"<User {self.login}>"
 
     @property
     def password(self) -> str:
         return self._password
 
     @password.setter
-    def password(self, password) -> None:
+    def password(self, password: str) -> None:
         self._password = generate_password_hash(password)
 
-    def check_password(self, password) -> bool:
+    def check_password(self, password: str) -> bool:
         return check_password_hash(self._password, password)
 
     @property
@@ -109,6 +148,13 @@ class User(TimestampMixin, db.Model, UserMixin, MethodsExtensionMixin):
 
 class AuthHistory(db.Model):
     __tablename__ = "auth_history"
+    __table_args__ = (
+        UniqueConstraint("id", "device"),
+        {
+            "postgresql_partition_by": "LIST (device)",
+            "listeners": [("after_create", create_partition_history)],
+        },
+    )
 
     id = db.Column(
         UUID(as_uuid=True), primary_key=True, default=uuid4, unique=True, nullable=False
@@ -117,4 +163,22 @@ class AuthHistory(db.Model):
     timestamp = db.Column(db.DateTime, server_default=db.func.now())
     user_agent = db.Column(db.Text, nullable=False)
     ip_addr = db.Column(db.String(100))
-    device = db.Column(db.Text)
+
+    device = db.Column(db.Text, primary_key=True)
+
+class SocialAccount(db.Model):
+    __tablename__ = "social_accounts"
+
+    id = db.Column(
+        UUID(as_uuid=True), primary_key=True, default=uuid4, unique=True, nullable=False
+    )
+    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("users.id"), nullable=False)
+    user = db.relationship(User, backref=db.backref("social_accounts", lazy=True))
+
+    social_id = db.Column(db.String(255), nullable=False)
+    social_name = db.Column(db.String(255), nullable=False)
+
+    __table_args__ = (db.UniqueConstraint("social_id", "social_name", name="social_uc"), )
+
+    def __str__(self) -> str:
+        return f"<SocialAccount {self.social_name}:{self.user_id}>"
