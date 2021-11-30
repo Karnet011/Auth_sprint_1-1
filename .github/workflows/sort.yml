@@ -17,8 +17,8 @@ jobs:
         if: failure()
         run: |
           sort-requirements ./requirements/base.txt ./requirements/dev.txt ./requirements/prod.txt ./src/tests/functional/requirements.txt
-          git config --global user.name 'v-v-d'
-          git config --global user.email 'v-v-d@bk.ru'
+          git config --global user.name 'Karnet011'
+          git config --global user.email 'Karnet011@yandex.ru'
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
           git checkout $GITHUB_HEAD_REF
           git commit -am "fixup: requirements.txt sorted"
